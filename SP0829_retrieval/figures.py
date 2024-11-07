@@ -273,7 +273,16 @@ def summary_plot(retrieval_object):
     if retrieval_object.chemistry in ['equchem','quequchem']:
         only_params=['rv','vsini','log_g','C/O','Fe/H','log_C12_13_ratio','log_O16_18_ratio','log_O16_17_ratio']
     if retrieval_object.chemistry=='freechem':
-        only_params=['rv','vsini','log_g','log_H2O','log_12CO','log_13CO','log_HF','log_H2(18)O','log_H2S']
+        only_params=['rv','vsini','log_g']
+        # plot 6 most abundant species
+        abunds=[] # abundances
+        species=retrieval_object.chem_species
+        for spec in species:
+            abunds.append(retrieval_object.params_dict[spec])
+        abunds, species = zip(*sorted(zip(abunds, species)))
+        only_species=species[-6:][::-1] # get largest 6
+        only_params+=only_species
+
     fig, ax = cornerplot(retrieval_object,getfig=True,only_params=only_params,figsize=(17,17),fs=fs)
     l, b, w, h = [0.37,0.84,0.6,0.15] # left, bottom, width, height
     ax_spec = fig.add_axes([l,b,w,h])

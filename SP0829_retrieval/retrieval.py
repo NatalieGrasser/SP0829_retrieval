@@ -122,7 +122,7 @@ class Retrieval:
                         verbose=True,const_efficiency_mode=True, sampling_efficiency = 0.5,
                         n_live_points=N_live_points,resume=resume,
                         evidence_tolerance=evidence_tolerance, # default is 0.5, high number -> stops earlier
-                        dump_callback=self.PMN_callback,n_iter_before_update=100)
+                        dump_callback=self.PMN_callback,n_iter_before_update=10)
 
     def PMN_callback(self,n_samples,n_live,n_params,live_points,posterior, 
                     stats,max_ln_L,ln_Z,ln_Z_err,nullcontext):
@@ -214,15 +214,17 @@ class Retrieval:
 
         print(f'\n ------ {self.chemistry} - Nlive: {self.N_live_points} - ev: {self.evidence_tolerance} ------ \n')
 
-        self.PMN_run(N_live_points=self.N_live_points,evidence_tolerance=self.evidence_tolerance)
-        self.evaluate() # creates and saves self.params_dict
-        
+        # run retrieval if hasn't been run yet, else just redo plots
+        final_dict=pathlib.Path(f'{self.output_dir}/params_dict.pickle')
+        if final_dict.exists()==False:
+            print('\nStarting retrieval\n')
+            self.PMN_run(N_live_points=self.N_live_points,evidence_tolerance=self.evidence_tolerance)
+        else:
+            print('\nRetrieval exists\n')
+        self.evaluate() # creates plots and saves self.params_dict
+
         output_file=pathlib.Path('retrieval.out')
         if output_file.exists():
             os.system(f"mv {output_file} {self.output_dir}")
 
         print('\n ----------------- Done ---------------- \n')
-
-        
-        
-

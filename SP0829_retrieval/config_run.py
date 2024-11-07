@@ -18,7 +18,8 @@ from retrieval import Retrieval
 from parameters import Parameters
 
 # pass configuration as command line argument
-# example: config_run.py freechem 200 5
+# example: python config_run.py freechem 200 5
+# nohup mpiexec --use-hwthread-cpus --bind-to none -np 3 python config_run.py freechem 50 50 > & retrieval.out &
 chem = sys.argv[1] # freechem / equchem / quequchem
 Nlive= int(sys.argv[2]) # number of live points (integer)
 tol= float(sys.argv[3]) # evidence tolerance (float)

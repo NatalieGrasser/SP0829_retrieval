@@ -60,8 +60,7 @@ class Retrieval:
             self.chem_species=[]
             for par in param_dict:
                 if 'log_' in par: # get all species in params dict, they are in log, ignore other log values
-                    if par in ['log_g','log_Kzz','log_P_base_gray','log_opa_base_gray',
-                               'log_C12_13_ratio','log_O16_17_ratio','log_O16_18_ratio',
+                    if par in ['log_g','log_C12_13_ratio','log_O16_17_ratio','log_O16_18_ratio',
                                'log_Pqu_CO_CH4','log_Pqu_NH3','log_Pqu_HCN']: # skip
                         pass
                     else:
@@ -101,7 +100,7 @@ class Retrieval:
                 
                 atmosphere.setup_opa_structure(self.pressure)
                 atmosphere_objects.append(atmosphere)
-            with open(file,'wb') as file:
+            with open(file,'wb') as file: # save so that they don't need to be created every time
                 pickle.dump(atmosphere_objects,file)
             return atmosphere_objects
 
@@ -121,8 +120,9 @@ class Retrieval:
                         outputfiles_basename=f'{self.output_dir}/{self.prefix}', 
                         verbose=True,const_efficiency_mode=True, sampling_efficiency = 0.5,
                         n_live_points=N_live_points,resume=resume,
-                        evidence_tolerance=evidence_tolerance, # default is 0.5, high number -> stops earlier
-                        dump_callback=self.PMN_callback,n_iter_before_update=10)
+                        evidence_tolerance=evidence_tolerance, # recommended is 0.5, high number -> stops earlier
+                        dump_callback=self.PMN_callback,
+                        n_iter_before_update=10) # iterations before updating live plot
 
     def PMN_callback(self,n_samples,n_live,n_params,live_points,posterior, 
                     stats,max_ln_L,ln_Z,ln_Z_err,nullcontext):
@@ -130,8 +130,6 @@ class Retrieval:
         self.posterior = posterior[:,:-2] # remove last 2 columns
         self.params_dict,self.model_flux=self.get_params_and_spectrum()
         figs.summary_plot(self)
-        if self.chemistry in ['equchem','quequchem']:
-            figs.VMR_plot(self)
      
     def PMN_analyse(self):
         analyzer = pymultinest.Analyzer(n_params=self.parameters.n_params, 
@@ -176,8 +174,8 @@ class Retrieval:
         self.params_dict['phi_ij']=self.LogLike.phi
         self.params_dict['s2_ij']=self.LogLike.s2
         if self.callback_label=='final_':
-            self.params_dict['chi2']=self.LogLike.chi2_0_red # save reduced chi^2 of fiducial model
-            self.params_dict['lnZ']=self.lnZ # save lnZ of fiducial model
+            self.params_dict['chi2']=self.LogLike.chi2_0_red # save reduced chi^2
+            self.params_dict['lnZ']=self.lnZ # save lnZ
 
         self.model_flux=np.zeros_like(model_flux0)
         phi_ij=self.params_dict['phi_ij']
@@ -196,16 +194,12 @@ class Retrieval:
         
         return self.params_dict,self.model_flux
 
-    def evaluate(self,only_abundances=False,only_params=None,split_corner=True,
-                 callback_label='final_',makefigs=True):
+    def evaluate(self,only_params=None,callback_label='final_',makefigs=True):
         self.callback_label=callback_label
         self.PMN_analyse() # get/save bestfit params and final posterior
-        self.params_dict,self.model_flux=self.get_params_and_spectrum() # all params: constant + free + scaling phi_ij + s2_ij
+        self.params_dict,self.model_flux=self.get_params_and_spectrum() # all params + scaling phi_ij + s2_ij
         if makefigs:
-            if callback_label=='final_':
-                figs.make_all_plots(self,only_abundances=only_abundances,only_params=only_params,split_corner=split_corner)
-            else:
-                figs.summary_plot(self)
+            figs.make_all_plots(self,only_params=only_params)
 
     def run_retrieval(self,N_live_points=400,evidence_tolerance=0.5): 
 

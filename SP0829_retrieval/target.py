@@ -6,9 +6,9 @@ class Target:
 
     def __init__(self,name):
         self.name=name
-        self.n_orders=7
-        self.n_dets=3
-        self.n_pixels=2048
+        self.n_orders=7 # number or orders
+        self.n_dets=3 # number of detectors
+        self.n_pixels=2048 # number of pixels per detector
         self.K2166=np.array([[[1921.318,1934.583], [1935.543,1948.213], [1949.097,1961.128]],
                             [[1989.978,2003.709], [2004.701,2017.816], [2018.708,2031.165]],
                             [[2063.711,2077.942], [2078.967,2092.559], [2093.479,2106.392]],
